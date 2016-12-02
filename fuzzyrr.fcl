@@ -1,0 +1,53 @@
+FUNCTION_BLOCK tipper	
+
+VAR_INPUT				
+	workload : REAL;
+	abt : REAL;
+END_VAR
+
+VAR_OUTPUT				
+	quantum : REAL;
+END_VAR
+
+FUZZIFY workload			
+	TERM low := (0, 1) (40, 0) ; 
+	TERM average := (30, 0) (50,1) (70,0);
+	TERM high := (60, 0) (100, 1);
+END_FUZZIFY
+
+FUZZIFY abt			
+	TERM low := (0, 1) (10, 1) (20, 0);
+	TERM medium := (15,0) (20,1) (30,0);
+	TERM high := (25, 0) (35, 1) (50, 1);
+END_FUZZIFY
+
+// Defuzzify output variable
+DEFUZZIFY quantum			
+	TERM small := (10,0) (15,1) (20,0);
+	TERM regular := (17.5,0) (20,1) (25,0);
+	TERM large := (22.5,0) (30,1) (40,1);
+	METHOD : COG;	// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 20;	// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+// Inference rules
+RULEBLOCK No1
+	AND : MIN;	// Use 'min' for 'and'
+	ACT : MIN;	// Use 'min' activation method
+	ACCU : MAX;	// Use 'max' accumulation method
+
+	RULE 1 : IF workload IS low AND abt IS low THEN quantum is small;
+	RULE 2 : IF workload IS low AND abt IS medium THEN quantum is regular;
+	RULE 3 : IF workload IS low AND abt IS high THEN quantum is regular;
+
+	RULE 4 : IF workload IS average AND abt IS low THEN quantum is small;
+	RULE 5 : IF workload IS average AND abt IS medium THEN quantum is regular;
+	RULE 6 : IF workload IS average AND abt IS high THEN quantum is large;
+
+	RULE 7 : IF workload IS high AND abt IS low THEN quantum is regular;
+	RULE 8 : IF workload IS high AND abt IS medium THEN quantum is regular;
+	RULE 9 : IF workload IS high AND abt IS high THEN quantum is large;
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK

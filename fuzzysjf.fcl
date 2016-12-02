@@ -1,0 +1,53 @@
+FUNCTION_BLOCK tipper	
+
+VAR_INPUT				
+	pbt : REAL;
+	waiting : REAL;
+END_VAR
+
+VAR_OUTPUT				
+	priority : REAL;
+END_VAR
+
+FUZZIFY pbt			
+	TERM low := (0, 1) (1, 0) ; 
+	TERM average := (0.5, 0) (1,1) (1.5,0);
+	TERM high := (1, 0) (2, 1) (5, 1);
+END_FUZZIFY
+
+FUZZIFY waiting			
+	TERM low := (0, 1) (1, 0) ; 
+	TERM average := (0.5, 0) (1,1) (1.5,0);
+	TERM high := (1, 0) (2, 1) (5, 1);
+END_FUZZIFY
+
+// Defuzzify output variable
+DEFUZZIFY priority			
+	TERM low := trian 0 2.5 5;
+  	TERM medium := trian 2.5 5 7.5;
+  	TERM high := trian 5 7.5 10;
+	METHOD : COG;	// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 20;	// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+// Inference rules
+RULEBLOCK No1
+	AND : MIN;	// Use 'min' for 'and'
+	ACT : MIN;	// Use 'min' activation method
+	ACCU : MAX;	// Use 'max' accumulation method
+
+	RULE 1 : IF pbt IS low AND waiting IS low THEN priority is high;
+	RULE 2 : IF pbt IS low AND waiting IS average THEN priority is high;
+	RULE 3 : IF pbt IS low AND waiting IS high THEN priority is high;
+
+	RULE 4 : IF pbt IS average AND waiting IS low THEN priority is medium;
+	RULE 5 : IF pbt IS average AND waiting IS average THEN priority is medium;
+	RULE 6 : IF pbt IS average AND waiting IS high THEN priority is high;
+
+	RULE 7 : IF pbt IS high AND waiting IS low THEN priority is low;
+	RULE 8 : IF pbt IS high AND waiting IS average THEN priority is medium;
+	RULE 9 : IF pbt IS high AND waiting IS high THEN priority is high;
+
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
